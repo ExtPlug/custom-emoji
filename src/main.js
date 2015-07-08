@@ -13,7 +13,9 @@ define(function (require, exports, module) {
 
     enable() {
       this._super()
-      this.ext.roomSettings.on('change:emoji', this.update, this)
+      this.ext.roomSettings
+        .on('change:emoji', this.update, this)
+        .on('change:emotes', this.update, this)
 
       // remember the original emoji so we can restore them
       this.originalMap = _.clone(emoji.map)
@@ -47,7 +49,8 @@ define(function (require, exports, module) {
     },
 
     update() {
-      let custom = this.ext.roomSettings.get('emoji')
+      let custom = this.ext.roomSettings.get('emotes')
+                || this.ext.roomSettings.get('emoji')
       this.removeStyles()
       this.reset()
       if (custom) {

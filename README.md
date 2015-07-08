@@ -18,9 +18,12 @@ https://extplug.github.io/custom-emoji/build/custom-emoji.js;extplug/custom-emoj
 
 **Note: This section is intended for room hosts only.**
 
-You can add custom emoji to your room by adding an `emoji` property to
-your room settings file. The `emoji` property should contain an object,
+You can add custom emoji to your room by adding an `emotes` property to
+your room settings file. The `emotes` property should contain an object,
 with emoji names as keys, and emoji images as values.
+
+> You can also use the `emoji` property, but then your custom emoji
+> won't work for users of the Radiant Community Script.
 
 An emoji image can be:
 
@@ -64,7 +67,7 @@ Full example:
 
 ```json
 {
-  "emoji": {
+  "emotes": {
     "smiling_bunny": "https://example.com/smiling_bunny.png",
     "sad_bunny_one": {
       "sheet": "https://example.com/sad_bunnies.png",
@@ -99,4 +102,3 @@ The built plugin will be stored at `build/custom-emoji.js`.
 ## License
 
 [MIT](./LICENSE)
-
