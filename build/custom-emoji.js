@@ -10,20 +10,30 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
 
   var around = _require.around;
 
+  var MAX_EMOJI_SUGGESTIONS = 10;
+
   var CustomEmoji = Plugin.extend({
     name: 'Custom Emoji',
     description: 'Shows custom emoji defined by room settings.',
 
     enable: function enable() {
+      var _this = this;
+
       this._super();
-      this.ext.roomSettings.on('change:emoji', this.update, this);
+      this.ext.roomSettings.on('change:emoji', this.update, this).on('change:emotes', this.update, this);
+
+      // remember the original emoji so we can restore them
       this.originalMap = _.clone(emoji.map);
+
+      // plug.dj does some fancy fast lookup table thing in emoji.lookup,
+      // but that doesn't seem particularly useful for a few hundred emoji.
+      // so until it is, we'll just use this much simpler version...
       this.advice = around(emoji, 'lookup', function (joinpoint) {
         var query = joinpoint.args[0].toLowerCase();
-        var results = Object.keys(emoji.map).filter(function (key) {
+        var results = _this.emojiNames.filter(function (key) {
           return key.toLowerCase().indexOf(query) === 0;
         });
-        return results.sort().slice(0, 10);
+        return results.sort().slice(0, MAX_EMOJI_SUGGESTIONS);
       });
 
       this.update();
@@ -48,14 +58,14 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
     },
 
     update: function update() {
-      var _this = this;
+      var _this2 = this;
 
-      var custom = this.ext.roomSettings.get('emoji');
+      var custom = this.ext.roomSettings.get('emotes') || this.ext.roomSettings.get('emoji');
       this.removeStyles();
       this.reset();
       if (custom) {
         (function () {
-          var styles = _this.Style();
+          var styles = _this2.Style();
 
           _.each(custom, function (emote, name) {
             var id = _.uniqueId('cust-');
@@ -64,7 +74,7 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
             var sel = '.emoji.emoji-' + id;
             if (typeof emote === 'string') {
               styles.set(sel, {
-                background: 'url("' + emote.replace(/"/g, '"') + '")',
+                'background': 'url("' + emote.replace(/"/g, '"') + '")',
                 'background-position': 'center center',
                 'background-size': 'contain',
                 'background-repeat': 'no-repeat'
@@ -84,6 +94,8 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
           });
         })();
       }
+
+      this.emojiNames = Object.keys(emoji.map);
     }
 
   });
