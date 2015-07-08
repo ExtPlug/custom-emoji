@@ -1,11 +1,13 @@
 Custom Emoji
 ============
 
-ExtPlug plugin that allows room owners to specify custom emoji. :awesome:
+ExtPlug plugin that allows room owners to specify custom emoji.
+:awesome:
 
 ## Installation
 
-You can install this plugin by going to your ExtPlug settings menu, pressing "Install Plugin",
+You can install this plugin by going to your ExtPlug settings menu,
+pressing "Install Plugin",
 and entering this Plugin URL:
 
 ```
@@ -16,20 +18,24 @@ https://extplug.github.io/custom-emoji/build/custom-emoji.js;extplug/custom-emoj
 
 **Note: This section is intended for room hosts only.**
 
-You can add custom emoji to your room by adding an `emoji` property to your room settings file. The `emoji` property should contain an object, with emoji names as keys, and emoji images as values.
+You can add custom emoji to your room by adding an `emoji` property to
+your room settings file. The `emoji` property should contain an object,
+with emoji names as keys, and emoji images as values.
 
 An emoji image can be:
 
-  * a URL string. This will use the image at the given URL as the emoji. This is the simplest
-    method and is *probably* what you should use, unless you have hundreds of emoji.
+  * a URL string. This will use the image at the given URL as the emoji.
+    This is the simplest method and is *probably* what you should use,
+    unless you have hundreds of emoji.
     (eg. `{ "my_emoji": "https://example.com/my_emoji.png" }`)
-  * a Sheet object. This will use a sprite sheet at a given URL, and grab the emoji from that.
-    You have to specify both the URL, and the offset at which your emoji can be found. The `x` and
-    `y` offset properties form the value for a CSS `background-position` property, so they should
-    usually be negative and include the `px` suffix.
+  * a Sheet object. This will use a sprite sheet at a given URL, and
+    grab the emoji from that. You have to specify both the URL, and the
+    offset at which your emoji can be found. The `x` and `y` offset
+    properties form the value for a CSS `background-position` property,
+    so they should usually be negative and include the `px` suffix.
 
-    For example, an emoji at 75px from the left, and 300px from the top, in image sheet
-    `sprite_sheet.png` needs the following JSON:
+    For example, an emoji at 75px from the left, and 300px from the top,
+    in image sheet `sprite_sheet.png` needs the following JSON:
     ```json
     "my_emoji": {
       "sheet": "https://example.com/sprite_sheet.png",
@@ -37,9 +43,11 @@ An emoji image can be:
       "y": "-300px"
     }
     ```
-    Using a sprite sheet means you can load lots of emoji in one go, instead of waiting
-    for dozens of small images to download, so it may be faster.
-  * a Style object. This will apply any CSS styles you enter to the emoji.
+    Using a sprite sheet means you can load lots of emoji in one go,
+    instead of waiting for dozens of small images to download, so it may
+    be faster.
+  * a Style object. This will apply any CSS styles you enter to the
+    emoji.
     For example:
 
     ```json
@@ -49,7 +57,8 @@ An emoji image can be:
     }
     ```
 
-Individual emoji should be exactly 15px by 15px in size. If they are smaller (or larger), they will be scaled to fit in a 15px by 15px box.
+Individual emoji should be exactly 15px by 15px in size. If they are
+smaller (or larger), they will be scaled to fit in a 15px by 15px box.
 
 Full example:
 
@@ -71,7 +80,8 @@ Full example:
 }
 ```
 
-Now, users can use the `:smiling_bunny:`, `:sad_bunny_one:`, and `:sad_bunny_two:` emoji.
+Now, users can use the `:smiling_bunny:`, `:sad_bunny_one:`, and
+`:sad_bunny_two:` emoji.
 
 ## Building
 
