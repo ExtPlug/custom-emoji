@@ -12,10 +12,8 @@ define(function (require, exports, module) {
     description: 'Shows custom emoji defined by room settings.',
 
     enable() {
-      this._super()
-      this.ext.roomSettings
-        .on('change:emoji', this.update, this)
-        .on('change:emotes', this.update, this)
+      this.listenTo(this.ext.roomSettings, 'change:emoji', this.update)
+      this.listenTo(this.ext.roomSettings, 'change:emotes', this.update)
 
       // remember the original emoji so we can restore them
       this.originalMap = _.clone(emoji.map)
@@ -33,10 +31,8 @@ define(function (require, exports, module) {
     },
 
     disable() {
-      this.ext.roomSettings.off('change:emoji', this.update)
       this.reset()
       this.advice.remove()
-      this._super()
     },
 
     reset() {
