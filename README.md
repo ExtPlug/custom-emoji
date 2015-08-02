@@ -6,9 +6,10 @@ ExtPlug plugin that allows room owners to specify custom emoji.
 
 ## Installation
 
-You can install this plugin by going to your ExtPlug settings menu,
-pressing "Install Plugin",
-and entering this Plugin URL:
+If you do not have ExtPlug yet, get it [here](https://extplug.github.io).
+
+You can install this plugin by going to your ExtPlug settings menu, pressing
+"Install Plugin", and entering this Plugin URL:
 
 ```
 https://extplug.github.io/custom-emoji/build/custom-emoji.js;extplug/custom-emoji/main

@@ -2,6 +2,15 @@ var gulp   = require('gulp')
 var babel  = require('gulp-babel')
 var rjs    = require('requirejs')
 var fs     = require('fs')
+var mkdirp = require('mkdirp')
+var del    = require('del')
+var runseq = require('run-sequence')
+
+var pluginPath = 'extplug/custom-emoji'
+
+gulp.task('clean-lib', function (cb) {
+  del('lib', cb)
+})
 
 gulp.task('babel', function () {
   return gulp.src('src/**/*')
@@ -9,28 +18,40 @@ gulp.task('babel', function () {
     .pipe(gulp.dest('lib/'))
 })
 
-gulp.task('rjs', [ 'babel' ], function (done) {
+gulp.task('rjs', function (done) {
+  // these paths are defined at runtime, so the r.js optimizer can't find them
+  var paths = {
+    // plug files, define()d by plug-modules
+    plug: 'empty:',
+    // extplug defines
+    extplug: 'empty:',
+    // plug.dj language files
+    lang: 'empty:',
+    // libraries used by plug.dj
+    backbone: 'empty:',
+    jquery: 'empty:',
+    underscore: 'empty:',
+    // libraries used by extplug
+    meld: 'empty:',
+    'plug-modules': 'empty:'
+  }
+
+  paths[pluginPath] = 'lib/'
+
   rjs.optimize({
     baseUrl: './',
-    name: 'extplug/custom-emoji/main',
-    paths: {
-      // plug-modules defines, these are defined at runtime
-      // so the r.js optimizer can't find them
-      plug: 'empty:',
-      'extplug/custom-emoji': 'lib/',
-      extplug: 'empty:',
-      lang: 'empty:',
-      backbone: 'empty:',
-      jquery: 'empty:',
-      underscore: 'empty:',
-      meld: 'empty:',
-      'plug-modules': 'empty:'
-    },
+    name: pluginPath + '/main',
+    paths: paths,
     optimize: 'none',
     out: function (text) {
-      fs.writeFile('build/custom-emoji.js', text, done)
+      mkdirp('build', function (e) {
+        if (e) done(e)
+        else   fs.writeFile('build/custom-emoji.js', text, done)
+      })
     }
   })
 })
 
-gulp.task('build', [ 'rjs' ])
+gulp.task('build', function (cb) {
+  runseq('clean-lib', 'babel', 'rjs', cb)
+})

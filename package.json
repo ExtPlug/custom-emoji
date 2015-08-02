@@ -1,10 +1,20 @@
-{ "name": "extplug-custom-emoji"
-, "version": "0.0.2"
-, "description": "ExtPlug plugin that allows room owners to specify custom emoji."
-, "devDependencies":
-  { "gulp": "^3.8.11"
-  , "gulp-babel": "^5.1.0"
-  , "requirejs": "^2.1.17" }
-, "scripts":
-  { "build": "gulp build"
-  , "test": "jshint src" } }
+{
+  "name": "extplug-custom-emoji",
+  "version": "0.0.2",
+  "license": "MIT",
+  "description": "ExtPlug plugin that allows room owners to specify custom emoji.",
+  "keywords": [
+    "extplug-plugin"
+  ],
+  "devDependencies": {
+    "del": "^1.2.0",
+    "gulp": "^3.8.11",
+    "gulp-babel": "^5.1.0",
+    "mkdirp": "^0.5.1",
+    "requirejs": "^2.1.18",
+    "run-sequence": "^1.1.1"
+  },
+  "scripts": {
+    "build": "gulp build"
+  }
+}
