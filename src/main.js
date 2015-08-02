@@ -4,6 +4,7 @@ define(function (require, exports, module) {
   const emoji = require('plug/util/emoji')
   const _ = require('underscore')
   const { around } = require('meld')
+  const Tooltips = require('./tooltips')
 
   const MAX_EMOJI_SUGGESTIONS = 10
 
@@ -11,9 +12,19 @@ define(function (require, exports, module) {
     name: 'Custom Emoji',
     description: 'Shows custom emoji defined by room settings.',
 
+    settings: {
+      tooltips: { type: 'boolean', label: 'Show Emoji Names on Hover', default: true }
+    },
+
+    init(id, ext) {
+      this._super(id, ext)
+      this.tooltips = new Tooltips(`${id}:tooltips`, ext)
+    },
+
     enable() {
       this.listenTo(this.ext.roomSettings, 'change:emoji', this.update)
       this.listenTo(this.ext.roomSettings, 'change:emotes', this.update)
+      this.listenTo(this.settings, 'change:tooltips', this.tooltipState)
 
       // remember the original emoji so we can restore them
       this.originalMap = _.clone(emoji.map)
@@ -28,11 +39,24 @@ define(function (require, exports, module) {
       })
 
       this.update()
+      this.tooltipState()
     },
 
     disable() {
       this.reset()
       this.advice.remove()
+      if (this.settings.get('tooltips')) {
+        this.tooltips.disable()
+      }
+    },
+
+    tooltipState() {
+      if (this.settings.get('tooltips')) {
+        this.tooltips.enable()
+      }
+      else {
+        this.tooltips.disable()
+      }
     },
 
     reset() {
@@ -42,6 +66,9 @@ define(function (require, exports, module) {
       // therefore simply reassigning it doesn't work
       _.each(emoji.map, (v, name) => { delete emoji.map[name] })
       _.extend(emoji.map, this.originalMap)
+      if (this.tooltips) {
+        this.tooltips.map = _.invert(emoji.map)
+      }
     },
 
     update() {
@@ -83,8 +110,10 @@ define(function (require, exports, module) {
       }
 
       this.emojiNames = Object.keys(emoji.map)
+      if (this.tooltips) {
+        this.tooltips.map = _.invert(emoji.map)
+      }
     }
-
   })
 
   module.exports = CustomEmoji
