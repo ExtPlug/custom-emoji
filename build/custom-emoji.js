@@ -1,6 +1,43 @@
 
 
-define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin','plug/util/emoji','underscore','meld'],function (require, exports, module) {
+define('extplug/custom-emoji/tooltips',['require','exports','module','extplug/Plugin','plug/core/Events','jquery'],function (require, exports, module) {
+
+  var Plugin = require('extplug/Plugin');
+  var Events = require('plug/core/Events');
+  var $ = require('jquery');
+
+  var Tooltips = Plugin.extend({
+    name: 'Emoji Tooltips',
+    description: 'Shows emoji names on hover',
+
+    map: {},
+
+    enable: function enable() {
+      $(document).on('mouseenter.extplug.customemoji', '.emoji', this.onEnter.bind(this)).on('mouseleave.extplug.customemoji', '.emoji', this.onLeave.bind(this));
+    },
+
+    disable: function disable() {
+      $(document).off('.extplug.customemoji');
+    },
+
+    onEnter: function onEnter(e) {
+      var target = $(e.target);
+      var emojiId = target.attr('class').match(/emoji-(\S+)/);
+      this.debug(emojiId, emojiId && emojiId[1] in this.map);
+      if (emojiId && this.map && emojiId[1] in this.map) {
+        Events.trigger('tooltip:show', ':' + this.map[emojiId[1]] + ':', target, true);
+      }
+    },
+    onLeave: function onLeave() {
+      Events.trigger('tooltip:hide');
+    }
+  });
+
+  module.exports = Tooltips;
+});
+
+
+define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin','plug/util/emoji','underscore','meld','./tooltips'],function (require, exports, module) {
 
   var Plugin = require('extplug/Plugin');
   var emoji = require('plug/util/emoji');
@@ -10,17 +47,29 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
 
   var around = _require.around;
 
+  var Tooltips = require('./tooltips');
+
   var MAX_EMOJI_SUGGESTIONS = 10;
 
   var CustomEmoji = Plugin.extend({
     name: 'Custom Emoji',
     description: 'Shows custom emoji defined by room settings.',
 
+    settings: {
+      tooltips: { type: 'boolean', label: 'Show Emoji Names on Hover', 'default': true }
+    },
+
+    init: function init(id, ext) {
+      this._super(id, ext);
+      this.tooltips = new Tooltips('' + id + ':tooltips', ext);
+    },
+
     enable: function enable() {
       var _this = this;
 
-      this._super();
-      this.ext.roomSettings.on('change:emoji', this.update, this).on('change:emotes', this.update, this);
+      this.listenTo(this.ext.roomSettings, 'change:emoji', this.update);
+      this.listenTo(this.ext.roomSettings, 'change:emotes', this.update);
+      this.listenTo(this.settings, 'change:tooltips', this.tooltipState);
 
       // remember the original emoji so we can restore them
       this.originalMap = _.clone(emoji.map);
@@ -37,13 +86,23 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
       });
 
       this.update();
+      this.tooltipState();
     },
 
     disable: function disable() {
-      this.ext.roomSettings.off('change:emoji', this.update);
       this.reset();
       this.advice.remove();
-      this._super();
+      if (this.settings.get('tooltips')) {
+        this.tooltips.disable();
+      }
+    },
+
+    tooltipState: function tooltipState() {
+      if (this.settings.get('tooltips')) {
+        this.tooltips.enable();
+      } else {
+        this.tooltips.disable();
+      }
     },
 
     reset: function reset() {
@@ -55,6 +114,9 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
         delete emoji.map[name];
       });
       _.extend(emoji.map, this.originalMap);
+      if (this.tooltips) {
+        this.tooltips.map = _.invert(emoji.map);
+      }
     },
 
     update: function update() {
@@ -96,8 +158,10 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
       }
 
       this.emojiNames = Object.keys(emoji.map);
+      if (this.tooltips) {
+        this.tooltips.map = _.invert(emoji.map);
+      }
     }
-
   });
 
   module.exports = CustomEmoji;
