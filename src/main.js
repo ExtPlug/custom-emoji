@@ -27,22 +27,13 @@ define(function (require, exports, module) {
     },
 
     enable() {
-      setTimeout(() => {
-        Events
-          .trigger('notify', 'icon-chat-system', warnText)
-          .trigger('chat:receive', {
-            type: 'system',
-            message: warnText
-          })
-      }, 500)
-      return this.disable()
-
       this.listenTo(this.ext.roomSettings, 'change:emoji', this.update)
       this.listenTo(this.ext.roomSettings, 'change:emotes', this.update)
       this.listenTo(this.settings, 'change:tooltips', this.tooltipState)
 
       // remember the original emoji so we can restore them
-      this.originalMap = _.clone(emoji.map)
+      this.originalMap = _.clone(emoji.emojiMap)
+      this.originalPlug = _.clone(emoji.plugdata)
 
       // plug.dj does some fancy fast lookup table thing in emoji.lookup,
       // but that doesn't seem particularly useful for a few hundred emoji.
@@ -58,7 +49,6 @@ define(function (require, exports, module) {
     },
 
     disable() {
-      return
       this.reset()
       this.advice.remove()
       if (this.settings.get('tooltips')) {
@@ -80,10 +70,10 @@ define(function (require, exports, module) {
       // plug retains a local reference to it. (instead of looking
       // it up on the emoji module object all the time)
       // therefore simply reassigning it doesn't work
-      _.each(emoji.map, (v, name) => { delete emoji.map[name] })
-      _.extend(emoji.map, this.originalMap)
+      emoji.emojiMap = this.originalMap
+      emoji.plugdata = this.originalPlug
       if (this.tooltips) {
-        this.tooltips.map = _.invert(emoji.map)
+        this.tooltips.map = _.invert(emoji.emojiMap)
       }
     },
 
@@ -93,13 +83,15 @@ define(function (require, exports, module) {
       this.removeStyles()
       this.reset()
       if (custom) {
-        let styles = this.Style()
+        let styles = this.createStyle()
 
+        emoji.emojiMap = _.clone(emoji.emojiMap)
+        emoji.plugdata = _.clone(emoji.plugdata)
         _.each(custom, (emote, name) => {
-          let id = _.uniqueId('cust-')
-          emoji.map[name] = id
+          emoji.emojiMap[name] = name
+          emoji.plugdata.push(name)
 
-          let sel = `.emoji.emoji-${id}`
+          let sel = `.gemoji-plug.gemoji-plug-${name}`
           if (typeof emote === 'string') {
             styles.set(sel, {
               'background': `url("${emote.replace(/"/g, '\"')}")`,
@@ -122,12 +114,12 @@ define(function (require, exports, module) {
             }
           }
         })
-
       }
 
-      this.emojiNames = Object.keys(emoji.map)
+      emoji.init_hash()
+      this.emojiNames = Object.keys(emoji.emojiMap)
       if (this.tooltips) {
-        this.tooltips.map = _.invert(emoji.map)
+        this.tooltips.map = _.invert(emoji.emojiMap)
       }
     }
   })
