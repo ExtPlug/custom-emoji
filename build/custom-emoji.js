@@ -37,7 +37,7 @@ define('extplug/custom-emoji/tooltips',['require','exports','module','extplug/Pl
 });
 
 
-define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin','plug/util/emoji','underscore','meld','./tooltips'],function (require, exports, module) {
+define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin','plug/util/emoji','underscore','meld','./tooltips','plug/core/Events'],function (require, exports, module) {
 
   var Plugin = require('extplug/Plugin');
   var emoji = require('plug/util/emoji');
@@ -48,8 +48,10 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
   var around = _require.around;
 
   var Tooltips = require('./tooltips');
+  var Events = require('plug/core/Events');
 
   var MAX_EMOJI_SUGGESTIONS = 10;
+  var warnText = 'The Custom Emoji plugin is temporarily unavailable after ' + 'plug.dj updated their emoji code. ' + 'The plugin should receive an update later today. ' + 'Sorry for the inconvenience!';
 
   var CustomEmoji = Plugin.extend({
     name: 'Custom Emoji',
@@ -61,11 +63,19 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
 
     init: function init(id, ext) {
       this._super(id, ext);
-      this.tooltips = new Tooltips('' + id + ':tooltips', ext);
+      this.tooltips = new Tooltips(id + ':tooltips', ext);
     },
 
     enable: function enable() {
       var _this = this;
+
+      setTimeout(function () {
+        Events.trigger('notify', 'icon-chat-system', warnText).trigger('chat:receive', {
+          type: 'system',
+          message: warnText
+        });
+      }, 500);
+      return this.disable();
 
       this.listenTo(this.ext.roomSettings, 'change:emoji', this.update);
       this.listenTo(this.ext.roomSettings, 'change:emotes', this.update);
@@ -90,6 +100,7 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
     },
 
     disable: function disable() {
+      return;
       this.reset();
       this.advice.remove();
       if (this.settings.get('tooltips')) {
@@ -136,7 +147,7 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
             var sel = '.emoji.emoji-' + id;
             if (typeof emote === 'string') {
               styles.set(sel, {
-                'background': 'url("' + emote.replace(/"/g, '"') + '")',
+                'background': 'url("' + emote.replace(/"/g, '\"') + '")',
                 'background-position': 'center center',
                 'background-size': 'contain',
                 'background-repeat': 'no-repeat'
@@ -144,8 +155,8 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
             } else if (typeof emote === 'object') {
               if (emote.sheet) {
                 styles.set(sel, {
-                  'background-image': 'url("' + emote.sheet.replace(/"/g, '"') + '")',
-                  'background-position': '' + emote.x + ' ' + emote.y,
+                  'background-image': 'url("' + emote.sheet.replace(/"/g, '\"') + '")',
+                  'background-position': emote.x + ' ' + emote.y,
                   'background-size': 'contain',
                   'background-repeat': 'no-repeat'
                 });
