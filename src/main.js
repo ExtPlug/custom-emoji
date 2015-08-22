@@ -5,8 +5,13 @@ define(function (require, exports, module) {
   const _ = require('underscore')
   const { around } = require('meld')
   const Tooltips = require('./tooltips')
+  const Events = require('plug/core/Events')
 
   const MAX_EMOJI_SUGGESTIONS = 10
+  const warnText = 'The Custom Emoji plugin is temporarily unavailable after ' +
+                   'plug.dj updated their emoji code. ' +
+                   'The plugin should receive an update later today. ' +
+                   'Sorry for the inconvenience!'
 
   const CustomEmoji = Plugin.extend({
     name: 'Custom Emoji',
@@ -22,6 +27,16 @@ define(function (require, exports, module) {
     },
 
     enable() {
+      setTimeout(() => {
+        Events
+          .trigger('notify', 'icon-chat-system', warnText)
+          .trigger('chat:receive', {
+            type: 'system',
+            message: warnText
+          })
+      }, 500)
+      return this.disable()
+
       this.listenTo(this.ext.roomSettings, 'change:emoji', this.update)
       this.listenTo(this.ext.roomSettings, 'change:emotes', this.update)
       this.listenTo(this.settings, 'change:tooltips', this.tooltipState)
@@ -43,6 +58,7 @@ define(function (require, exports, module) {
     },
 
     disable() {
+      return
       this.reset()
       this.advice.remove()
       if (this.settings.get('tooltips')) {
