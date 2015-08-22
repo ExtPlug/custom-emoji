@@ -10,10 +10,8 @@ define('extplug/custom-emoji/tooltips',['require','exports','module','extplug/Pl
     name: 'Emoji Tooltips',
     description: 'Shows emoji names on hover',
 
-    map: {},
-
     enable: function enable() {
-      $(document).on('mouseenter.extplug.customemoji', '.emoji', this.onEnter.bind(this)).on('mouseleave.extplug.customemoji', '.emoji', this.onLeave.bind(this));
+      $(document).on('mouseenter.extplug.customemoji', '.emoji-inner', this.onEnter.bind(this)).on('mouseleave.extplug.customemoji', '.emoji-inner', this.onLeave.bind(this));
     },
 
     disable: function disable() {
@@ -22,10 +20,9 @@ define('extplug/custom-emoji/tooltips',['require','exports','module','extplug/Pl
 
     onEnter: function onEnter(e) {
       var target = $(e.target);
-      var emojiId = target.attr('class').match(/emoji-(\S+)/);
-      this.debug(emojiId, emojiId && emojiId[1] in this.map);
-      if (emojiId && this.map && emojiId[1] in this.map) {
-        Events.trigger('tooltip:show', ':' + this.map[emojiId[1]] + ':', target, true);
+      var emojiId = target.data('emoji-name');
+      if (emojiId) {
+        Events.trigger('tooltip:show', ':' + emojiId + ':', target, true);
       }
     },
     onLeave: function onLeave() {
@@ -69,20 +66,13 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
     enable: function enable() {
       var _this = this;
 
-      setTimeout(function () {
-        Events.trigger('notify', 'icon-chat-system', warnText).trigger('chat:receive', {
-          type: 'system',
-          message: warnText
-        });
-      }, 500);
-      return this.disable();
-
       this.listenTo(this.ext.roomSettings, 'change:emoji', this.update);
       this.listenTo(this.ext.roomSettings, 'change:emotes', this.update);
       this.listenTo(this.settings, 'change:tooltips', this.tooltipState);
 
       // remember the original emoji so we can restore them
-      this.originalMap = _.clone(emoji.map);
+      this.originalMap = _.clone(emoji.emojiMap);
+      this.originalPlug = _.clone(emoji.plugdata);
 
       // plug.dj does some fancy fast lookup table thing in emoji.lookup,
       // but that doesn't seem particularly useful for a few hundred emoji.
@@ -100,7 +90,6 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
     },
 
     disable: function disable() {
-      return;
       this.reset();
       this.advice.remove();
       if (this.settings.get('tooltips')) {
@@ -121,12 +110,10 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
       // plug retains a local reference to it. (instead of looking
       // it up on the emoji module object all the time)
       // therefore simply reassigning it doesn't work
-      _.each(emoji.map, function (v, name) {
-        delete emoji.map[name];
-      });
-      _.extend(emoji.map, this.originalMap);
+      emoji.emojiMap = this.originalMap;
+      emoji.plugdata = this.originalPlug;
       if (this.tooltips) {
-        this.tooltips.map = _.invert(emoji.map);
+        this.tooltips.map = _.invert(emoji.emojiMap);
       }
     },
 
@@ -138,13 +125,15 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
       this.reset();
       if (custom) {
         (function () {
-          var styles = _this2.Style();
+          var styles = _this2.createStyle();
 
+          emoji.emojiMap = _.clone(emoji.emojiMap);
+          emoji.plugdata = _.clone(emoji.plugdata);
           _.each(custom, function (emote, name) {
-            var id = _.uniqueId('cust-');
-            emoji.map[name] = id;
+            emoji.emojiMap[name] = name;
+            emoji.plugdata.push(name);
 
-            var sel = '.emoji.emoji-' + id;
+            var sel = '.gemoji-plug.gemoji-plug-' + name;
             if (typeof emote === 'string') {
               styles.set(sel, {
                 'background': 'url("' + emote.replace(/"/g, '\"') + '")',
@@ -168,9 +157,10 @@ define('extplug/custom-emoji/main',['require','exports','module','extplug/Plugin
         })();
       }
 
-      this.emojiNames = Object.keys(emoji.map);
+      emoji.init_hash();
+      this.emojiNames = Object.keys(emoji.emojiMap);
       if (this.tooltips) {
-        this.tooltips.map = _.invert(emoji.map);
+        this.tooltips.map = _.invert(emoji.emojiMap);
       }
     }
   });
