@@ -8,12 +8,10 @@ define(function (require, exports, module) {
     name: 'Emoji Tooltips',
     description: 'Shows emoji names on hover',
 
-    map: {},
-
     enable() {
       $(document)
-        .on('mouseenter.extplug.customemoji', '.emoji', this.onEnter.bind(this))
-        .on('mouseleave.extplug.customemoji', '.emoji', this.onLeave.bind(this))
+        .on('mouseenter.extplug.customemoji', '.emoji-inner', this.onEnter.bind(this))
+        .on('mouseleave.extplug.customemoji', '.emoji-inner', this.onLeave.bind(this))
     },
 
     disable() {
@@ -22,10 +20,9 @@ define(function (require, exports, module) {
 
     onEnter(e) {
       let target = $(e.target)
-      let emojiId = target.attr('class').match(/emoji-(\S+)/)
-      this.debug(emojiId, emojiId&& emojiId[1] in this.map)
-      if (emojiId && this.map && emojiId[1] in this.map) {
-        Events.trigger('tooltip:show', `:${this.map[emojiId[1]]}:`, target, true)
+      let emojiId = target.data('emoji-name')
+      if (emojiId) {
+        Events.trigger('tooltip:show', `:${emojiId}:`, target, true)
       }
     },
     onLeave() {
