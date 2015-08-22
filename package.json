@@ -1,6 +1,6 @@
 {
   "name": "extplug-custom-emoji",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "MIT",
   "description": "ExtPlug plugin that allows room owners to specify custom emoji.",
   "keywords": [
