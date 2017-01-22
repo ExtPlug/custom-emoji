@@ -3,18 +3,20 @@
   "version": "1.0.2",
   "license": "MIT",
   "description": "ExtPlug plugin that allows room owners to specify custom emoji.",
+  "main": "build/custom-emoji.js",
+  "repository": "extplug/custom-emoji",
+  "files": [
+    "build",
+    "src"
+  ],
   "keywords": [
     "extplug-plugin"
   ],
   "devDependencies": {
-    "del": "^1.2.0",
-    "gulp": "^3.8.11",
-    "gulp-babel": "^5.1.0",
-    "mkdirp": "^0.5.1",
-    "requirejs": "^2.1.18",
-    "run-sequence": "^1.1.1"
+    "extplug-cli": "^1.0.0"
   },
   "scripts": {
-    "build": "gulp build"
+    "prepublishOnly": "npm run build -- --minify",
+    "build": "extplug bundle src/main.js build/custom-emoji.js"
   }
 }
