@@ -1,6 +1,8 @@
 Custom Emoji
 ============
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/extplug/custom-emoji.svg)](https://greenkeeper.io/)
+
 ExtPlug plugin that allows room owners to specify custom emoji.
 :awesome:
 
